@@ -33,15 +33,26 @@ def calculo_TAS(volume_ml, abv, peso, sexo):
     return TAS
 
 
-# Parametros de entrada do usuario
-peso = 80    # em Kilos
-sexo = 1     # 1 - masculino / 2 - feminino
-saldo = 250  # Quantidade de dinheiro para gastar em [R$]
+''' Parametros de entrada do usuario e do modelo
+peso em Kg
+sexo - 1 - masculino / 2 - feminino
+saldo - Quantidade de dinheiro para gastar em [R$]
+
+TAS_min - Taxa de álcool no sangue para entrar em estado de embriaguez
+TAS_max - Limite seguro para Taxa de álcool máxima no sangue
+
+'''
+# Usuário
+peso = 60
+sexo = 2
+saldo = 300
+
+# Modelo
+TAS_min = 0.3   # Taxa de álcool no sangue para entrar em estado de embriaguez
+TAS_max = 1.2   # Limite seguro para Taxa de álcool máxima no sangue
 
 
 # Parametros do modelo
-TAS_minimo = 0.5   # Taxa de álcool no sangue para entrar em estado de embriaguez
-TAS_maximo = 2.8   # Limite seguro para Taxa de álcool máxima no sangue
 
 
 # Processamento de informacoes
@@ -71,8 +82,8 @@ custo = grb.quicksum([i*j for i,j in zip(x, preco_itens)])
 m.setObjective(obj, grb.GRB.MAXIMIZE)
 
 # Restricoes do problema:
-m.addConstr(obj <= TAS_maximo)
-m.addConstr(obj >= TAS_minimo)
+m.addConstr(obj <= TAS_max)
+m.addConstr(obj >= TAS_min)
 m.addConstr(custo <= saldo)
 
 m.optimize()
@@ -95,13 +106,14 @@ else:
         
     print('-------\nConta do bar: R${0:.2f} '.format(conta_do_bar))
     print('\nTAS final: %g g/L' % m.objVal)  
-    perc = 100*(m.objVal/TAS_maximo)
-    print('{}'.format(("Você atingiu o limite máximo de álcool no sangue" if perc >= 99 
+    perc = 100*(m.objVal/TAS_max)
+    print('{}'.format(("Você atingiu o limite máximo de álcool no sangue para " if perc >= 99
           else "Você está {0:.2f}% perto do limite máximo de não desmaiar ".format(perc))))
-    
-    # Plotar grátifcos
-    # 1 - itens por TAS(g/L)
-    # 2 - itens por dinheiros(R$)
 
-    plot_tas_per_drink(data, TAS_itens, TAS_minimo, TAS_maximo, items_index, N, 5)
-    plot_price_per_drink(data, preco_itens, 0, saldo, items_index, N, 5)
+    '''    
+        # Plotar grátifcos
+        # 1 - itens por TAS(g/L)
+        # 2 - itens por dinheiros(R$)
+    '''
+    plot_tas_per_drink(data, TAS_itens, TAS_min, TAS_max, items_index, N, 4)
+    plot_price_per_drink(data, preco_itens, 0, saldo, items_index, N, 4)
